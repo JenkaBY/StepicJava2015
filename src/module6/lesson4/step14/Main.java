@@ -100,8 +100,9 @@ package module6.lesson4.step14;
  * <p>
  * import java.util.*;
  * import java.util.function.*;
- *  https://stepic.org/lesson/Stream-API-12781/step/14?course=Java-%D0%91%D0%B0%D0%B7%D0%BE%D0%B2%D1%8B%D0%B9-%D0%BA%D1%83%D1%80%D1%81&unit=3128
+ * https://stepic.org/lesson/Stream-API-12781/step/14?course=Java-%D0%91%D0%B0%D0%B7%D0%BE%D0%B2%D1%8B%D0%B9-%D0%BA%D1%83%D1%80%D1%81&unit=3128
  */
+
 import java.util.*;
 import java.util.function.*;
 
@@ -111,9 +112,9 @@ import java.util.function.*;
 public class Main {
     public static void main(String[] args) {
         // Random variables
-        String randomFrom = "..."; // Некоторая случайная строка. Можете выбрать ее самостоятельно.
-        String randomTo = "...";  // Некоторая случайная строка. Можете выбрать ее самостоятельно.
-        int randomSalary = 100;  // Некоторое случайное целое положительное число. Можете выбрать его самостоятельно.
+        String randomFrom = "Random string"; // Некоторая случайная строка. Можете выбрать ее самостоятельно.
+        String randomTo = "Other random string";  // Некоторая случайная строка. Можете выбрать ее самостоятельно.
+        int randomSalary = 99;  // Некоторое случайное целое положительное число. Можете выбрать его самостоятельно.
 
 // Создание списка из трех почтовых сообщений.
         MailMessage firstMessage = new MailMessage(
@@ -213,21 +214,30 @@ public class Main {
     }
 
     static class Salary {
+        private String organization;
+        private String name;
+        private int salary;
+        private Map<String, List<String>> mailBox;
         public Salary(String organization, String name, int salary) {
+            this.organization = organization;
+            this.name = name;
+            this.salary = salary;
         }
 
         public Map<String, List<String>> getMailBox() {
-            return null;
+            return mailBox;
         }
 
         public String getTo() {
-            return null;
+            return organization;
         }
     }
 
     static class MailService<T> {
-        public <K> getMailBox() {
-            return null;
+        T mail;
+        public <T> getMailBox() {
+            //return K;
+            return mail;
         }
     }
 }
