@@ -103,20 +103,15 @@ package module6.lesson4.step14;
  * https://stepic.org/lesson/Stream-API-12781/step/14?course=Java-%D0%91%D0%B0%D0%B7%D0%BE%D0%B2%D1%8B%D0%B9-%D0%BA%D1%83%D1%80%D1%81&unit=3128
  */
 
-import java.util.*;
-import java.util.function.*;
-
-/**
- * Created by YKuzmich on 06.11.2015.
- */
 public class Main {
+
     public static void main(String[] args) {
         // Random variables
-        String randomFrom = "Random string"; // Некоторая случайная строка. Можете выбрать ее самостоятельно.
-        String randomTo = "Other random string";  // Некоторая случайная строка. Можете выбрать ее самостоятельно.
-        int randomSalary = 99;  // Некоторое случайное целое положительное число. Можете выбрать его самостоятельно.
+        String randomFrom = "Test randomFrom"; // Некоторая случайная строка. Можете выбрать ее самостоятельно.
+        String randomTo = "Test randomTo";  // Некоторая случайная строка. Можете выбрать ее самостоятельно.
+        int randomSalary = 101;  // Некоторое случайное целое положительное число. Можете выбрать его самостоятельно.
 
-// Создание списка из трех почтовых сообщений.
+        // Создание списка из трех почтовых сообщений.
         MailMessage firstMessage = new MailMessage(
                 "Robert Howard",
                 "H.P. Lovecraft",
@@ -143,14 +138,14 @@ public class Main {
                 firstMessage, secondMessage, thirdMessage
         );
 
-// Создание почтового сервиса.
+        // Создание почтового сервиса.
         MailService<String> mailService = new MailService<>();
 
-// Обработка списка писем почтовым сервисом
+        // Обработка списка писем почтовым сервисом
         messages.stream().forEachOrdered(mailService);
 
-// Получение и проверка словаря "почтового ящика",
-//   где по получателю можно получить список сообщений, которые были ему отправлены
+        // Получение и проверка словаря "почтового ящика",
+        // где по получателю можно получить список сообщений, которые были ему отправлены
         Map<String, List<String>> mailBox = mailService.getMailBox();
 
         assert mailBox.get("H.P. Lovecraft").equals(
@@ -169,76 +164,99 @@ public class Main {
         assert mailBox.get(randomTo).equals(Collections.<String>emptyList()) : "wrong mailService mailbox content (3)";
 
 
-// Создание списка из трех зарплат.
+        // Создание списка из трех зарплат.
         Salary salary1 = new Salary("Facebook", "Mark Zuckerberg", 1);
         Salary salary2 = new Salary("FC Barcelona", "Lionel Messi", Integer.MAX_VALUE);
         Salary salary3 = new Salary(randomFrom, randomTo, randomSalary);
 
-// Создание почтового сервиса, обрабатывающего зарплаты.
+        // Создание почтового сервиса, обрабатывающего зарплаты.
         MailService<Integer> salaryService = new MailService<>();
 
-// Обработка списка зарплат почтовым сервисом
+        // Обработка списка зарплат почтовым сервисом
         Arrays.asList(salary1, salary2, salary3).forEach(salaryService);
 
-// Получение и проверка словаря "почтового ящика",
-//   где по получателю можно получить список зарплат, которые были ему отправлены.
+        // Получение и проверка словаря "почтового ящика",
+        //   где по получателю можно получить список зарплат, которые были ему отправлены.
         Map<String, List<Integer>> salaries = salaryService.getMailBox();
         assert salaries.get(salary1.getTo()).equals(Arrays.asList(1)) : "wrong salaries mailbox content (1)";
         assert salaries.get(salary2.getTo()).equals(Arrays.asList(Integer.MAX_VALUE)) : "wrong salaries mailbox content (2)";
         assert salaries.get(randomTo).equals(Arrays.asList(randomSalary)) : "wrong salaries mailbox content (3)";
     }
 
-    static class MailMessage {
-        private String from;
-        private String to;
-        private String textMessage;
+    public static class MailMessage extends AbstractSendable<String> {
+        public MailMessage(String from, String to, String body) {
+            super(from, to, body);
+        }
+    }
 
-        public MailMessage(String from, String to, String text) {
+    public static class Salary extends AbstractSendable<Integer> {
+        public Salary(String from, String to, Integer salary) {
+            super(from, to, salary);
+        }
+    }
+
+    public static class MailService<T> implements Consumer<Sendable<T>> {
+        Map<String, List<T>> mails;
+
+        public MailService() {
+            mails = new HashMap<String, List<T>>(){
+                @Override
+                public List<T> get(Object index){
+                    return super.getOrDefault(index, Collections.<T>emptyList());
+                }
+            };
+            mails.forEach((k,v) -> System.out.println(k + " : " + v));
+        }
+
+        public Map<String, List<T>> getMailBox() {
+            return mails;
+        }
+
+        @Override
+        public void accept(Sendable<T> sendable) {
+            mails.compute(sendable.getTo(), (k, v) -> {
+                if (v == null) {
+                    List<T> result = new ArrayList<>();
+                    result.add(sendable.getContent());
+                    return result;
+                } else {
+                    v.add(sendable.getContent());
+                    return v;
+                }
+            });
+        }
+    }
+
+    public static abstract class AbstractSendable<T> implements Sendable<T> {
+        protected final String from;
+        protected final String to;
+        protected final T content;
+
+        public AbstractSendable(String from, String to, T content) {
             this.from = from;
             this.to = to;
-            this.textMessage = text;
+            this.content = content;
         }
 
+        @Override
         public String getFrom() {
-            return this.from;
+            return from;
         }
 
+        @Override
         public String getTo() {
-            return this.to;
+            return to;
         }
 
-        public String getContent() {
-            return this.textMessage;
-        }
-
-    }
-
-    static class Salary {
-        private String organization;
-        private String name;
-        private int salary;
-        private Map<String, List<String>> mailBox;
-        public Salary(String organization, String name, int salary) {
-            this.organization = organization;
-            this.name = name;
-            this.salary = salary;
-        }
-
-        public Map<String, List<String>> getMailBox() {
-            return mailBox;
-        }
-
-        public String getTo() {
-            return organization;
+        @Override
+        public T getContent() {
+            return content;
         }
     }
 
-    static class MailService<T> {
-        T mail;
-        public <T> getMailBox() {
-            //return K;
-            return mail;
-        }
+    public static interface Sendable<T> {
+        String getFrom();
+        String getTo();
+        T getContent();
     }
 }
-
